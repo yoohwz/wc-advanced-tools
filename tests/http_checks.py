@@ -64,6 +64,9 @@ rows = list(csv.reader(io.StringIO(body.decode("utf-8"))))
 assert len(rows) == 3 and all(len(row) == 6 for row in rows)
 assert rows[1][2:] == ["2020-03-08T00:00:00-05:00", "completed", "USD", "12.30"]
 assert b"private-fixture" not in body and b"Private fixture address" not in body
+status, headers, body = request(manager, path, dict(form, start_date="2021-01-01", end_date="2021-01-01", status="wc-pending"))
+assert status == 200 and headers.get_content_type() == "text/csv"
+assert len(list(csv.reader(io.StringIO(body.decode())))) == 1001, "1,000-order HTTP export was truncated"
 
 for client, data, expected in [
     (client_for(), form, 403),

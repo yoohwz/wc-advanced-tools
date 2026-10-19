@@ -126,10 +126,11 @@ final class Quick_Order_Export {
 				if ( ! $order instanceof \WC_Order || 'shop_order' !== $order->get_type() || ! $order->get_date_created( 'edit' ) || $wpdb->last_error ) {
 					throw new \RuntimeException( 'An order could not be read.' );
 				}
+				$created = clone $order->get_date_created( 'edit' );
 				self::write_row( $stream, array(
 					$order->get_id(),
 					$order->get_order_number(),
-					$order->get_date_created( 'edit' )->setTimezone( wp_timezone() )->format( 'Y-m-d\TH:i:sP' ),
+					$created->setTimezone( wp_timezone() )->format( 'Y-m-d\TH:i:sP' ),
 					$order->get_status( 'edit' ),
 					$order->get_currency( 'edit' ),
 					$order->get_total( 'edit' ),
@@ -165,7 +166,7 @@ final class Quick_Order_Export {
 		} catch ( \Throwable $error ) {
 			wp_die( esc_html__( 'Export failed. No CSV was downloaded. Try a smaller date range; if it still fails, ask your administrator to check the store. No orders were changed.', 'wc-advanced-tools' ), '', array( 'response' => 500, 'back_link' => true ) );
 		}
-		if ( headers_sent() ) {
+		if ( headers_sent() || ob_get_length() ) {
 			fclose( $stream );
 			wp_die( esc_html__( 'The download could not start because another component sent output. No orders were changed.', 'wc-advanced-tools' ) );
 		}

@@ -8,7 +8,7 @@ set -euo pipefail
 AT_SOURCE="$(cd "$(dirname "$0")/.." && pwd)"
 AT_CLI="${RUNNER_TEMP:-/tmp}/at-wp-cli.phar"
 curl --fail --silent --show-error --location https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar -o "$AT_CLI"
-wp_at() { php "$AT_CLI" --path="$AT_WP_PATH" "$@"; }
+wp_at() { php -d memory_limit=512M "$AT_CLI" --path="$AT_WP_PATH" "$@"; }
 if [[ -e "$AT_WP_PATH/wp-config.php" ]]; then
   echo 'Refusing to use an existing configured WordPress site.' >&2
   exit 1

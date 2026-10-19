@@ -141,11 +141,17 @@ remove_filter( 'woocommerce_order_query', $failed_query );
 for ( $i = 0; $i <= Export::MAX_ORDERS; ++$i ) {
 	$order = new WC_Order();
 	$order->set_date_created( '2021-01-01T12:00:00+00:00' );
-	$order->set_status( 'pending' );
+	$order->set_status( $i === Export::MAX_ORDERS ? 'on-hold' : 'pending' );
 	$order->save();
 }
 $large = Export::query_args( at_input( array( 'start_date' => '2021-01-01', 'end_date' => '2021-01-01', 'status' => 'all' ) ) );
 at_throws( static fn() => Export::build_csv( $large ), LengthException::class );
+$bounded = array_merge( $large, array( 'exclude' => array( $order->get_id() ) ) );
+at_assert( count( at_rows( Export::build_csv( $bounded ) ) ) === 1001, 'Exactly 1,000 orders must export without truncation.' );
+$large_number = static fn() => str_repeat( 'x', 3000 );
+add_filter( 'woocommerce_order_number', $large_number );
+at_throws( static fn() => Export::build_csv( $bounded ), RuntimeException::class );
+remove_filter( 'woocommerce_order_number', $large_number );
 $_POST = array( 'start_date' => '2021-01-01', 'end_date' => '2021-01-01', 'status' => 'all' );
 at_denied( 400 );
 WP_CLI::success( "$mode: real storage/date/DST/status/empty/oversize, CSV formulas/quoting, permission/nonce/failure and read-only checks passed." );
