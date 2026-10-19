@@ -34,6 +34,7 @@ cat > "$AT_WP_PATH/wp-content/mu-plugins/at-disposable.php" <<'PHP'
 // Keep synthetic fixture jobs idle on the single-threaded test HTTP server.
 add_filter( 'action_scheduler_allow_async_request_runner', '__return_false' );
 add_filter( 'woocommerce_enable_setup_wizard', '__return_false' );
+add_filter( 'pre_wp_mail', '__return_true' );
 PHP
 ln -s "$AT_SOURCE" "$AT_WP_PATH/wp-content/plugins/wc-advanced-tools"
 wp_at plugin activate wc-advanced-tools
@@ -52,10 +53,13 @@ wp_at option update woocommerce_custom_orders_table_data_sync_enabled no
 wp_at option update woocommerce_custom_orders_table_enabled yes
 wp_at eval-file "$AT_SOURCE/tests/runtime.php" hpos
 # Real authenticated HTTP download and browser-facing response headers.
-php -S 127.0.0.1:8093 -t "$AT_WP_PATH" > "${RUNNER_TEMP:-/tmp}/at-http.log" 2>&1 &
+php -d opcache.enable_cli=0 -d opcache.jit=0 -S 127.0.0.1:8093 -t "$AT_WP_PATH" > "${RUNNER_TEMP:-/tmp}/at-http.log" 2>&1 &
 AT_HTTP_PID=$!
 trap 'kill "$AT_HTTP_PID" 2>/dev/null || true' EXIT
-python3 "$AT_SOURCE/tests/http_checks.py"
+if ! python3 "$AT_SOURCE/tests/http_checks.py"; then
+  cat "${RUNNER_TEMP:-/tmp}/at-http.log"
+  exit 1
+fi
 wp_at plugin deactivate woocommerce
 wp_at eval-file "$AT_SOURCE/tests/woocommerce-unavailable.php"
 mv "$AT_WP_PATH/wp-content/plugins/woocommerce" "$AT_WP_PATH/woocommerce-absent"
