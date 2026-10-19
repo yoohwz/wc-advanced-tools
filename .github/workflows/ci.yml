@@ -1,0 +1,75 @@
+name: AT CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, converted_to_draft, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: at-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: ${{ github.event_name == 'push' && 'AT Main Integrity' || (github.event.pull_request.draft && 'AT Iteration Gate' || 'AT Required CI') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact event source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify exact checkout and current PR boundary
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AT_EVENT: ${{ github.event_name }}
+          AT_REPO: ${{ github.repository }}
+          AT_PR: ${{ github.event.pull_request.number }}
+          AT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          AT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$AT_HEAD"
+          if [[ "$AT_EVENT" == "pull_request" ]]; then
+            [[ "$AT_PR" =~ ^[1-9][0-9]*$ ]]
+            gh api "repos/$AT_REPO/pulls/$AT_PR" > "$RUNNER_TEMP/at-pr.json"
+            jq -e --arg repo "$AT_REPO" --arg head "$AT_HEAD" --arg base "$AT_BASE" \
+              '.state == "open" and .head.repo.full_name == $repo and .head.sha == $head and .base.ref == "main" and .base.sha == $base' \
+              "$RUNNER_TEMP/at-pr.json" >/dev/null
+          fi
+
+      - name: Set up syntax-check PHP
+        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2.35.5
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Tracked PHP and JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-files -z -- '*.php' | xargs -0 -r -n1 php -l
+          git ls-files -z -- '*.js' | xargs -0 -r -n1 node --check
+
+      - name: Diff whitespace
+        shell: bash
+        env:
+          AT_EVENT: ${{ github.event_name }}
+          AT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$AT_EVENT" == "pull_request" ]]; then
+            git diff --check "$AT_BASE"...HEAD
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            git diff --check HEAD^ HEAD
+          fi
