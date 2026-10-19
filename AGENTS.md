@@ -1,6 +1,6 @@
 # WooCommerce Advanced Tools — agent instructions
 
-Repository: `yoohwz/wc-advanced-tools`. Product: **Premium-first, standalone WooCommerce plugin**. The repository was initially empty; `AT-1` bootstraps governance only. No free/core companion, public WordPress.org release, commercial publisher, or runtime plugin exists yet.
+Repository: `yoohwz/wc-advanced-tools`. Product: **Premium-first, standalone WooCommerce plugin**. AT-1 established governance; AT-3 introduces the plugin and Quick Order Export. No free/core companion, public WordPress.org release or commercial publisher exists.
 
 Read `docs/workflow.md` before making or reviewing repository changes. Read `docs/releasing.md` for release tasks. Work on one admitted AT-N Issue, branch and draft PR; do not change `main` directly after the one-time README bootstrap.
 
@@ -45,6 +45,8 @@ Tests involving real writes, destructive cleanup, subscriptions, payments or ema
 Implement one Premium product with supported functionality. Do not create Free stubs, dual-plugin hooks, future takeover/migration mechanisms, WordPress.org distribution or speculative licensing infrastructure. Future Freemium extraction is a separate Human-approved architecture/product task after Premium is mature.
 
 Repository visibility is currently **public**. No proprietary source or secrets should be committed until Human confirms the intended visibility/licensing policy. This warning does not block non-sensitive workflow documentation.
+
+AT-3 records Human's explicit authorization for public Premium-source development during this initial stage. Do not request the visibility decision again for AT-3. This does not authorize distribution or a license grant; secrets and customer data remain prohibited.
 
 ## Release boundary
 
