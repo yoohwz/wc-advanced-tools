@@ -69,7 +69,7 @@ Develop on a Draft PR. Before freezing, Codex runs applicable inexpensive lint/t
 
 `.github/workflows/ci.yml` intentionally has one lean CI job with three GitHub-visible names:
 - **AT Iteration Gate** on Draft PR events: quick syntax/whitespace feedback, not merge/Acceptance evidence.
-- **AT Required CI** on Ready non-draft PR candidate: exact PR/head/base validation and applicable source syntax/whitespace. This is the required final hosted check for the present bootstrap.
+- **AT Required CI** on Ready non-draft PR candidate: exact PR/head/base validation, source syntax/whitespace and focused runtime checks. AT-3 adds disposable WordPress/WooCommerce legacy/HPOS export tests and HTTP download checks; see README for tested versions and limitations.
 - **AT Main Integrity** on main push: lightweight smoke/syntax/whitespace signal, never publication.
 
 Initially the repository contains no PHP, JS, runtime tests or release tooling. **A successful AT Required CI now proves only the checks it executes**, not WordPress/WooCommerce runtime compatibility. On the first implementation tasks, Codex must add *relevant* focused behavioral/regression checks and expand the Required CI to run the agreed essential cases before claiming product Acceptance; do not build an arbitrary compatibility matrix upfront. An explicitly authorized release task must validate an actual installable ZIP independently.
