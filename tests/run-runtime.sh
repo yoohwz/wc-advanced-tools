@@ -28,6 +28,13 @@ wp_at core install --url=http://127.0.0.1:8093 --title='AT disposable runtime' -
 wp_at option update siteurl http://127.0.0.1:8093
 wp_at option update home http://127.0.0.1:8093
 wp_at plugin install woocommerce --version=11.2.1
+mkdir -p "$AT_WP_PATH/wp-content/mu-plugins"
+cat > "$AT_WP_PATH/wp-content/mu-plugins/at-disposable.php" <<'PHP'
+<?php
+// Keep synthetic fixture jobs idle on the single-threaded test HTTP server.
+add_filter( 'action_scheduler_allow_async_request_runner', '__return_false' );
+add_filter( 'woocommerce_enable_setup_wizard', '__return_false' );
+PHP
 ln -s "$AT_SOURCE" "$AT_WP_PATH/wp-content/plugins/wc-advanced-tools"
 wp_at plugin activate wc-advanced-tools
 wp_at eval-file "$AT_SOURCE/tests/woocommerce-unavailable.php"

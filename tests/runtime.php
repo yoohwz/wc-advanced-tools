@@ -83,7 +83,7 @@ at_assert( $rows[2] === array( (string) $ids[2], (string) $ids[2], '2020-03-08T2
 at_assert( ! str_contains( json_encode( $rows ), 'private-fixture' ), 'Private fields leaked.' );
 
 foreach ( array(
-	array( 'start_date' => '2020-02-30' ), array( 'start_date' => array() ),
+	array( 'start_date' => '2020-02-30' ), array( 'start_date' => '0000-01-01' ), array( 'start_date' => array() ),
 	array( 'start_date' => '2020-03-09' ), array( 'end_date' => '' ),
 	array( 'status' => array( 'wc-completed' ) ), array( 'status' => 'trash' ),
 ) as $bad ) {

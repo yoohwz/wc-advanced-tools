@@ -61,7 +61,7 @@ final class Quick_Order_Export {
 				throw new \InvalidArgumentException( __( 'Enter valid start and end dates (YYYY-MM-DD).', 'wc-advanced-tools' ) );
 			}
 			$date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value, wp_timezone() );
-			if ( ! $date || $date->format( 'Y-m-d' ) !== $value ) {
+			if ( ! $date || $date->format( 'Y-m-d' ) !== $value || '0000' === $date->format( 'Y' ) ) {
 				throw new \InvalidArgumentException( __( 'Enter valid start and end dates (YYYY-MM-DD).', 'wc-advanced-tools' ) );
 			}
 			$dates[ $key ] = $date;
